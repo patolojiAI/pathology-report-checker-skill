@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(skill-creator edit:*)",
+      "Bash(find:*)"
+    ]
+  }
+}
