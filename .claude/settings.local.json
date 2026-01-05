@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(skill-creator edit:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(unzip:*)",
+      "Bash(python3:*)"
     ]
   }
 }

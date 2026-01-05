@@ -354,6 +354,7 @@ python scripts/watch_folder.py /reports --interval 30
 pathology-report-checker/
 ├── SKILL.md                    # Main skill instructions (streamlined)
 ├── README.md                   # This file
+├── CHANGELOG.md                # Version history with detailed changes
 ├── TODO.md                     # Feature roadmap
 ├── docs/                       # Detailed documentation
 │   ├── QUICK_REFERENCE.md      # 1-page cheat sheet
@@ -448,10 +449,12 @@ Score = 100 - (Critical × 15) - (Major × 5) - (Minor × 2)
 | File | Description |
 |------|-------------|
 | `SKILL.md` | Core skill instructions (streamlined) |
+| `CHANGELOG.md` | Version history with detailed changes |
 | `docs/QUICK_REFERENCE.md` | 1-page cheat sheet with all triggers and references |
 | `docs/WORKFLOW.md` | Detailed step-by-step compliance workflow |
 | `docs/FEATURES.md` | Documentation for all features |
 | `docs/USAGE.md` | CLI and script usage guide |
+| `samples/README.md` | Sample reports for testing |
 | `README.md` | This overview file |
 | `TODO.md` | Feature roadmap and completion status |
 
@@ -466,26 +469,20 @@ To add a new tumor type:
 
 ## Version History
 
-| Version | Date | Changes |
+> 📋 See `CHANGELOG.md` for detailed changes in each version.
+
+| Version | Date | Summary |
 |---------|------|---------|
-| 1.0 | 2024-12-27 | Initial release: breast, colorectal |
-| 1.1 | 2024-12-28 | Added pancreas, severity scoring, cross-validation |
-| 1.2 | 2024-12-28 | Quality metrics, trend tracking, CLI modes |
-| 1.3 | 2024-12-28 | LLM-powered batch processing |
-| 1.4 | 2024-12-28 | Macroscopy checker (AAPA guidelines) |
-| 1.5 | 2024-12-28 | Gastric carcinoma (CAP/ICCR, HER2, Laurén) |
-| 1.6 | 2024-12-28 | TNM stage calculator (AJCC 8th, all tumors) |
-| 1.7 | 2024-12-28 | Synoptic template generator (blank CAP templates) |
-| 1.8 | 2024-12-28 | SNOMED CT / ICD-O-3 coding (morphology, topography) |
-| 1.9 | 2024-12-28 | AAPA Guidelines (breast macroscopy, pre-analytics) |
-| 2.0 | 2024-12-28 | Tumor board summary generator (3-5 line MDT summaries) |
-| 2.1 | 2024-12-29 | Free-text to synoptic converter |
-| 2.2 | 2024-12-29 | Auto-fill suggestions (pT/pN/Stage from context) |
-| 2.3 | 2024-12-29 | Amendment generator (addendum/correction/amended report) |
-| 2.4 | 2024-12-29 | Watch folder (auto-process new reports) |
-| 2.5 | 2024-12-29 | Documentation split (SKILL.md → modular docs/) |
 | 2.6 | 2024-12-29 | Sample reports (10 synthetic test cases) |
-| 2.7 | (next) | Pediatric tumors (Wilms, neuroblastoma) |
+| 2.5 | 2024-12-29 | Documentation split (modular docs/) |
+| 2.4 | 2024-12-29 | Watch folder automation |
+| 2.3 | 2024-12-29 | Amendment generator |
+| 2.2 | 2024-12-29 | Auto-fill suggestions |
+| 2.1 | 2024-12-29 | Free-text to synoptic converter |
+| 2.0 | 2024-12-28 | Tumor board summary generator |
+| 1.5 | 2024-12-28 | Gastric carcinoma |
+| 1.1 | 2024-12-28 | Pancreas, severity scoring |
+| 1.0 | 2024-12-27 | Initial: breast, colorectal |
 
 ## License
 
