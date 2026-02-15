@@ -2,6 +2,9 @@
 
 Run pathology report compliance checks locally without sending data to the cloud.
 
+    python scripts/check_report.py -p lmstudio "Check compliance" < samples/colorectal_complete_en.txt
+    python scripts/check_report.py -p ollama "Check compliance" < samples/breast_complete_en.txt
+
 ## Prerequisites
 
 - Python 3.8+
