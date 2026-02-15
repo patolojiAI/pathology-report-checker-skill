@@ -532,10 +532,17 @@ def parse_llm_result(llm_result: Dict[str, Any], filename: str) -> ReportResult:
     minor_count = sum(1 for g in gaps if g.severity == "minor")
     missing_count = sum(1 for g in gaps if g.status == "missing")
     empty_count = sum(1 for g in gaps if g.status == "empty")
-    
+
+    # Handle tumor_type being a list or string
+    tumor_type_raw = llm_result.get("tumor_type", "unknown")
+    if isinstance(tumor_type_raw, list):
+        tumor_type = tumor_type_raw[0] if tumor_type_raw else "unknown"
+    else:
+        tumor_type = str(tumor_type_raw) if tumor_type_raw else "unknown"
+
     return ReportResult(
         filename=filename,
-        tumor_type=llm_result.get("tumor_type", "unknown"),
+        tumor_type=tumor_type,
         score=llm_result.get("compliance_score", 0),
         status=llm_result.get("status", "UNKNOWN"),
         critical_count=critical_count,
