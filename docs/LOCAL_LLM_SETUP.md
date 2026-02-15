@@ -28,6 +28,10 @@ ollama pull qwen2.5:14b         # Large (~9GB)
 python scripts/check_report.py -p ollama -m qwen2.5:3b "Check compliance" < report.txt
 ```
 
+> **Model selection with Ollama:** You must specify the model with `-m` since Ollama can serve any downloaded model on demand. Use `ollama list` or `--list-models` to see what's available.
+
+---
+
 ## Option B: LM Studio Setup
 
 ### 1. Install LM Studio
@@ -46,7 +50,7 @@ Download from https://lmstudio.ai
 
 1. Go to **Local Server** tab
 2. Set **Context Length** to `32768`
-3. Load the model
+3. **Load the model** (this is what makes it available to the API)
 4. Click **Start Server**
 
 ### 4. Run
@@ -54,6 +58,40 @@ Download from https://lmstudio.ai
 ```bash
 python scripts/check_report.py -p lmstudio "Check compliance" < report.txt
 ```
+
+### How Model Selection Works in LM Studio
+
+LM Studio's local server only responds with models that are **loaded into memory** — not just downloaded to disk. The script auto-detects which model(s) are loaded:
+
+| Scenario | What happens |
+|---|---|
+| **One model loaded** | Auto-detected and used automatically |
+| **Multiple models loaded** | First model is used; a warning lists all available models |
+| **No model loaded** | Error with instructions to load a model |
+
+To target a specific model when multiple are loaded:
+
+```bash
+python scripts/check_report.py -p lmstudio -m "qwen2.5-3b-instruct" "Check compliance" < report.txt
+```
+
+The `-m` value must match the model identifier shown in LM Studio's Local Server tab.
+
+---
+
+## Listing Available Models
+
+Check which models are available before running:
+
+```bash
+# List models loaded in LM Studio
+python scripts/check_report.py -p lmstudio --list-models
+
+# List models available in Ollama
+python scripts/check_report.py -p ollama --list-models
+```
+
+---
 
 ## Usage Examples
 
@@ -63,6 +101,9 @@ python scripts/check_report.py -p lmstudio "Check compliance" < report.txt
 
 # Specify tumor type
 python scripts/check_report.py -p ollama -m qwen2.5:3b -t breast "Check compliance" < report.txt
+
+# Specify a particular LM Studio model
+python scripts/check_report.py -p lmstudio -m "qwen2.5-3b-instruct" "Check compliance" < report.txt
 
 # Output to file
 python scripts/check_report.py -p lmstudio "Check compliance" < report.txt > result.txt
@@ -74,6 +115,8 @@ python scripts/check_report.py -p lmstudio -q "Check compliance" < report.txt
 python scripts/check_report.py -p lmstudio --file report.txt "Check compliance"
 ```
 
+---
+
 ## Environment Variables
 
 Set defaults to avoid typing flags:
@@ -81,24 +124,30 @@ Set defaults to avoid typing flags:
 ```bash
 # Windows
 set LLM_PROVIDER=lmstudio
+set LMSTUDIO_MODEL=qwen2.5-3b-instruct
 set OLLAMA_MODEL=qwen2.5:3b
 
 # Linux/Mac
 export LLM_PROVIDER=lmstudio
+export LMSTUDIO_MODEL=qwen2.5-3b-instruct
 export OLLAMA_MODEL=qwen2.5:3b
 
 # Then just run:
 python scripts/check_report.py "Check compliance" < report.txt
 ```
 
+---
+
 ## Recommended Models
 
 | Model | Size | RAM Needed | Quality |
-|-------|------|------------|---------|
+|---|---|---|---|
 | Qwen2.5-3B-Instruct | ~2GB | 8GB | Acceptable |
 | Llama-3.1-8B-Instruct | ~5GB | 12GB | Good |
 | Qwen2.5-14B-Instruct | ~9GB | 20GB | Very Good |
 | Qwen2.5-32B-Instruct | ~20GB | 40GB | Excellent |
+
+---
 
 ## Troubleshooting
 
@@ -109,9 +158,36 @@ Error: model 'llama3.1:70b' not found
 ```
 
 **Fix:** Download the model first or specify the correct model name:
+
 ```bash
 ollama list                    # See available models
 ollama pull qwen2.5:3b         # Download model
+
+# Or list models programmatically:
+python scripts/check_report.py -p ollama --list-models
+```
+
+### "No models loaded in LM Studio"
+
+```
+Error: No models loaded in LM Studio.
+```
+
+**Fix:** Open LM Studio → Local Server tab → Load a model → Start Server.
+
+### "Multiple models loaded" warning
+
+```
+Multiple models available in lmstudio:
+  1. qwen2.5-3b-instruct
+  2. llama-3.1-8b-instruct
+Using first available model: qwen2.5-3b-instruct
+```
+
+**Fix:** Specify which model to use with `-m`:
+
+```bash
+python scripts/check_report.py -p lmstudio -m "llama-3.1-8b-instruct" "Check compliance" < report.txt
 ```
 
 ### "Context length too small"
@@ -129,6 +205,7 @@ Error: openai package not installed
 ```
 
 **Fix:** Install the package:
+
 ```bash
 pip install openai
 ```
@@ -140,12 +217,15 @@ Error: Connection refused
 ```
 
 **Fix:**
-- Ollama: Ensure Ollama is running (`ollama serve`)
-- LM Studio: Start the Local Server
+- **Ollama:** Ensure Ollama is running (`ollama serve`)
+- **LM Studio:** Start the Local Server (Local Server tab → Start Server)
+
+---
 
 ## Privacy Note
 
 With Ollama or LM Studio:
+
 - All processing happens on your machine
 - No data is sent to external servers
 - Models are downloaded once, then work offline

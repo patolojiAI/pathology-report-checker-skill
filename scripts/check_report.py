@@ -3,7 +3,7 @@
 Single Pathology Report Checker
 
 Analyzes a single pathology report against CAP/ICCR guidelines using either
-Claude API or a local LLM via Ollama.
+Claude API or a local LLM via Ollama/LM Studio.
 
 Usage:
     # With Claude (default)
@@ -16,25 +16,34 @@ Usage:
 
     # With LM Studio (local, private)
     python check_report.py --provider lmstudio "Check this report" < report.txt
+    python check_report.py --provider lmstudio --model "qwen2.5-3b-instruct" < report.txt
+
+    # List available models
+    python check_report.py --provider lmstudio --list-models
+    python check_report.py --provider ollama --list-models
 
     # Output to file
     python check_report.py "Check compliance" < report.txt > result.txt
 
 Arguments:
-    prompt          The instruction/prompt for analysis
-    --file, -f      Path to report file (alternative to stdin)
-    --provider, -p  LLM provider: 'anthropic' (default) or 'ollama'
-    --model, -m     Model name (default: claude-sonnet-4-20250514 or llama3.1:70b)
-    --ollama-url    Ollama API base URL (default: http://localhost:11434/v1)
-    --tumor-type    Tumor type hint: breast, colorectal, pancreas, gastric
-    --json          Output raw JSON instead of formatted text
-    --quiet, -q     Suppress progress messages (only output result)
+    prompt              The instruction/prompt for analysis
+    --file, -f          Path to report file (alternative to stdin)
+    --provider, -p      LLM provider: 'anthropic' (default), 'ollama', or 'lmstudio'
+    --model, -m         Model name (auto-detected if not specified for local providers)
+    --list-models       List available models for the selected provider and exit
+    --ollama-url        Ollama API base URL (default: http://localhost:11434/v1)
+    --lmstudio-url      LM Studio API base URL (default: http://localhost:1234/v1)
+    --tumor-type        Tumor type hint: breast, colorectal, pancreas, gastric
+    --json              Output raw JSON instead of formatted text
+    --quiet, -q         Suppress progress messages (only output result)
 
 Environment:
     ANTHROPIC_API_KEY   Required for Claude provider
-    LLM_PROVIDER        Default provider (anthropic/ollama)
+    LLM_PROVIDER        Default provider (anthropic/ollama/lmstudio)
     OLLAMA_MODEL        Default Ollama model
     OLLAMA_URL          Default Ollama URL
+    LMSTUDIO_URL        Default LM Studio URL
+    LMSTUDIO_MODEL      Default LM Studio model
 """
 
 import os
@@ -42,8 +51,7 @@ import sys
 import json
 import argparse
 from pathlib import Path
-from typing import Optional, Dict, Any
-
+from typing import Optional, Dict, Any, List
 
 # ============================================================================
 # CONFIGURATION
@@ -53,6 +61,58 @@ DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
 DEFAULT_OLLAMA_MODEL = "llama3.1:70b"
 DEFAULT_OLLAMA_URL = "http://localhost:11434/v1"
 DEFAULT_LMSTUDIO_URL = "http://localhost:1234/v1"
+
+
+# ============================================================================
+# MODEL DISCOVERY
+# ============================================================================
+
+def list_available_models(base_url: str, provider: str, quiet: bool = False) -> List[str]:
+    """Query the /v1/models endpoint to list available models."""
+    try:
+        from openai import OpenAI
+    except ImportError:
+        print("Error: openai package not installed.", file=sys.stderr)
+        print("Install with: pip install openai", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        client = OpenAI(base_url=base_url, api_key="not-needed")
+        models_response = client.models.list()
+        model_ids = [m.id for m in models_response.data]
+        return model_ids
+    except Exception as e:
+        if not quiet:
+            print(f"Warning: Could not list models from {base_url}: {e}", file=sys.stderr)
+        return []
+
+
+def auto_select_model(base_url: str, provider: str, quiet: bool = False) -> Optional[str]:
+    """Auto-detect and select a model from the local server.
+
+    Returns the model ID if exactly one model is loaded,
+    prompts the user to choose if multiple are available,
+    or returns None if no models are found.
+    """
+    models = list_available_models(base_url, provider, quiet)
+
+    if not models:
+        return None
+
+    if len(models) == 1:
+        if not quiet:
+            print(f"Auto-detected model: {models[0]}", file=sys.stderr)
+        return models[0]
+
+    # Multiple models available
+    if not quiet:
+        print(f"\nMultiple models available in {provider}:", file=sys.stderr)
+        for i, model_id in enumerate(models, 1):
+            print(f"  {i}. {model_id}", file=sys.stderr)
+        print(f"\nUsing first available model: {models[0]}", file=sys.stderr)
+        print(f"Tip: Use -m <model-name> to select a specific model.\n", file=sys.stderr)
+
+    return models[0]
 
 
 # ============================================================================
@@ -167,8 +227,8 @@ def create_anthropic_client():
     return anthropic.Anthropic(api_key=api_key)
 
 
-def create_ollama_client(base_url: str):
-    """Create OpenAI-compatible client for Ollama."""
+def create_openai_compatible_client(base_url: str):
+    """Create OpenAI-compatible client for Ollama or LM Studio."""
     try:
         from openai import OpenAI
     except ImportError:
@@ -176,7 +236,7 @@ def create_ollama_client(base_url: str):
         print("Install with: pip install openai", file=sys.stderr)
         sys.exit(1)
 
-    return OpenAI(base_url=base_url, api_key="ollama")
+    return OpenAI(base_url=base_url, api_key="not-needed")
 
 
 def call_anthropic(client, model: str, prompt: str, quiet: bool = False) -> str:
@@ -192,8 +252,8 @@ def call_anthropic(client, model: str, prompt: str, quiet: bool = False) -> str:
     return response.content[0].text
 
 
-def call_ollama(client, model: str, prompt: str, quiet: bool = False) -> str:
-    """Call Ollama via OpenAI-compatible API."""
+def call_local_llm(client, model: str, prompt: str, quiet: bool = False) -> str:
+    """Call local LLM via OpenAI-compatible API (Ollama or LM Studio)."""
     if not quiet:
         print(f"Analyzing with {model} (local)...", file=sys.stderr)
 
@@ -210,13 +270,14 @@ def call_ollama(client, model: str, prompt: str, quiet: bool = False) -> str:
 # ============================================================================
 
 def analyze_report(
-    report_text: str,
-    user_prompt: str,
-    provider: str = "anthropic",
-    model: Optional[str] = None,
-    ollama_url: str = DEFAULT_OLLAMA_URL,
-    tumor_type: Optional[str] = None,
-    quiet: bool = False
+        report_text: str,
+        user_prompt: str,
+        provider: str = "anthropic",
+        model: Optional[str] = None,
+        ollama_url: str = DEFAULT_OLLAMA_URL,
+        lmstudio_url: str = DEFAULT_LMSTUDIO_URL,
+        tumor_type: Optional[str] = None,
+        quiet: bool = False
 ) -> str:
     """Analyze a pathology report using the specified provider."""
 
@@ -247,17 +308,20 @@ def analyze_report(
         return call_anthropic(client, model, full_prompt, quiet)
 
     elif provider == "ollama":
-        client = create_ollama_client(ollama_url)
-        model = model or DEFAULT_OLLAMA_MODEL
-        return call_ollama(client, model, full_prompt, quiet)
+        client = create_openai_compatible_client(ollama_url)
+        if not model:
+            model = auto_select_model(ollama_url, provider, quiet) or DEFAULT_OLLAMA_MODEL
+        return call_local_llm(client, model, full_prompt, quiet)
 
     elif provider == "lmstudio":
-        # LM Studio uses same API as Ollama, just different default URL
-        lmstudio_url = ollama_url if ollama_url != DEFAULT_OLLAMA_URL else DEFAULT_LMSTUDIO_URL
-        client = create_ollama_client(lmstudio_url)
-        # LM Studio typically uses the loaded model, pass through whatever is specified
-        model = model or "local-model"
-        return call_ollama(client, model, full_prompt, quiet)
+        client = create_openai_compatible_client(lmstudio_url)
+        if not model:
+            model = auto_select_model(lmstudio_url, provider, quiet)
+            if not model:
+                print("Error: No models loaded in LM Studio.", file=sys.stderr)
+                print("Open LM Studio → Local Server tab → Load a model → Start Server", file=sys.stderr)
+                sys.exit(1)
+        return call_local_llm(client, model, full_prompt, quiet)
 
     else:
         print(f"Error: Unknown provider '{provider}'", file=sys.stderr)
@@ -282,6 +346,13 @@ Examples:
 
   # Check report with LM Studio
   python check_report.py --provider lmstudio "Check for CAP compliance" < report.txt
+
+  # List available models
+  python check_report.py --provider lmstudio --list-models
+  python check_report.py --provider ollama --list-models
+
+  # Specify model explicitly
+  python check_report.py -p lmstudio -m "qwen2.5-3b-instruct" < report.txt
 
   # Specify model and output to file
   python check_report.py -p ollama -m qwen2.5:32b --file report.txt > result.txt
@@ -318,8 +389,14 @@ Examples:
     parser.add_argument(
         "--model", "-m",
         type=str,
-        default=os.environ.get("OLLAMA_MODEL") if os.environ.get("LLM_PROVIDER") == "ollama" else None,
-        help="Model name (default: claude-sonnet-4-20250514 for anthropic, llama3.1:70b for ollama)"
+        default=os.environ.get("OLLAMA_MODEL") or os.environ.get("LMSTUDIO_MODEL"),
+        help="Model name (auto-detected from server if not specified for local providers)"
+    )
+
+    parser.add_argument(
+        "--list-models",
+        action="store_true",
+        help="List available models for the selected provider and exit"
     )
 
     parser.add_argument(
@@ -327,6 +404,13 @@ Examples:
         type=str,
         default=os.environ.get("OLLAMA_URL", DEFAULT_OLLAMA_URL),
         help=f"Ollama API base URL (default: {DEFAULT_OLLAMA_URL})"
+    )
+
+    parser.add_argument(
+        "--lmstudio-url",
+        type=str,
+        default=os.environ.get("LMSTUDIO_URL", DEFAULT_LMSTUDIO_URL),
+        help=f"LM Studio API base URL (default: {DEFAULT_LMSTUDIO_URL})"
     )
 
     parser.add_argument(
@@ -349,6 +433,29 @@ Examples:
     )
 
     args = parser.parse_args()
+
+    # Handle --list-models
+    if args.list_models:
+        if args.provider == "anthropic":
+            print("Model listing not supported for Anthropic. Available models:")
+            print(f"  {DEFAULT_ANTHROPIC_MODEL}")
+            sys.exit(0)
+
+        base_url = args.lmstudio_url if args.provider == "lmstudio" else args.ollama_url
+        models = list_available_models(base_url, args.provider)
+
+        if not models:
+            print(f"No models found. Is {args.provider} running?", file=sys.stderr)
+            if args.provider == "ollama":
+                print("Start with: ollama serve", file=sys.stderr)
+            else:
+                print("Open LM Studio → Local Server → Load a model → Start Server", file=sys.stderr)
+            sys.exit(1)
+
+        print(f"Available models ({args.provider}):")
+        for model_id in models:
+            print(f"  {model_id}")
+        sys.exit(0)
 
     # Read report text
     if args.file:
@@ -381,6 +488,7 @@ Examples:
             provider=args.provider,
             model=args.model,
             ollama_url=args.ollama_url,
+            lmstudio_url=args.lmstudio_url,
             tumor_type=args.tumor_type,
             quiet=args.quiet
         )
