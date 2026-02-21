@@ -1,0 +1,27 @@
+# Development files (not included in skill package)
+CLAUDE.md
+TODO.md
+.DS_Store
+.git/
+.github/
+.vscode/
+.claude/
+
+# Python automation scripts (development tools)
+scripts/
+*.pyc
+__pycache__/
+.pytest_cache/
+venv/
+.env
+
+# IDE and workspace files
+*.code-workspace
+.idea/
+
+# Documentation (extended docs - keep README.md)
+docs/
+
+# Git files
+.gitignore
+.gitattributes

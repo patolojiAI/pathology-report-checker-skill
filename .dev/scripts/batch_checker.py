@@ -474,22 +474,75 @@ def process_directory(
     
     results = []
     
-    # Find all text files
-    report_files = list(input_path.glob("*.txt")) + list(input_path.glob("*.TXT"))
-    
+    # Find all supported files (text, Excel, CSV, PDF, images)
+    report_files = []
+    for ext in ["*.txt", "*.TXT", "*.xlsx", "*.xls", "*.csv", "*.pdf", "*.jpg", "*.jpeg", "*.png", "*.tiff", "*.tif"]:
+        report_files.extend(input_path.glob(ext))
+
     print(f"Found {len(report_files)} report files to process...")
     print(f"Using model: {model}")
     print()
-    
+
+    # Import shared file readers
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+        from shared_scripts.file_readers import read_file_content
+    except ImportError as e:
+        print(f"Warning: Could not import shared_scripts. Multi-format support unavailable.")
+        print(f"Error: {e}")
+        print("Falling back to text-only mode...")
+        # Fallback to text only
+        report_files = [f for f in report_files if f.suffix.lower() in {'.txt'}]
+
     for i, report_file in enumerate(report_files, 1):
         print(f"Processing [{i}/{len(report_files)}]: {report_file.name}")
-        
+
         try:
-            with open(report_file, "r", encoding="utf-8") as f:
-                report_text = f.read()
+            # Try multi-format reader first
+            if 'read_file_content' in dir():
+                content = read_file_content(report_file, client, use_vision=True)
+
+                # Handle batch Excel/CSV
+                if isinstance(content, list):
+                    print(f"  Detected batch mode: {len(content)} reports in {report_file.name}")
+
+                    for idx, row in enumerate(content, 1):
+                        report_text = row.get('report_text', '')
+                        patient_id = row.get('patient_id', f'Row_{idx}')
+
+                        print(f"    Processing row {idx}/{len(content)}: {patient_id}")
+
+                        # Analyze with LLM
+                        llm_result = analyze_report_with_llm(
+                            client=client,
+                            report_text=report_text,
+                            tumor_type=tumor_type or row.get('tumor_type'),
+                            skill_content=skill_content,
+                            model=model
+                        )
+
+                        # Parse result
+                        result = parse_llm_result(llm_result, f"{report_file.stem}_row{idx}_{patient_id}")
+                        results.append(result)
+
+                        # Save individual report
+                        individual_report = generate_individual_report(result)
+                        with open(individual_dir / f"{report_file.stem}_row{idx}_{patient_id}_qa.txt", "w", encoding="utf-8") as f:
+                            f.write(individual_report)
+
+                    continue  # Skip to next file
+                else:
+                    report_text = content
+            else:
+                # Fallback to text reading
+                with open(report_file, "r", encoding="utf-8") as f:
+                    report_text = f.read()
         except UnicodeDecodeError:
             with open(report_file, "r", encoding="latin-1") as f:
                 report_text = f.read()
+        except Exception as e:
+            print(f"  Error reading {report_file.name}: {e}")
+            continue
         
         # Analyze with LLM
         llm_result = analyze_report_with_llm(

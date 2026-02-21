@@ -341,17 +341,34 @@ class ReportHandler(FileSystemEventHandler):
                 return f.read()
         
         elif suffix == '.pdf':
+            # Try pypdf first (faster for clean PDFs)
             try:
                 import pypdf
                 reader = pypdf.PdfReader(filepath)
                 text = ''
                 for page in reader.pages:
                     text += page.extract_text() + '\n'
-                return text
+
+                # If extracted text is too short, use vision API
+                if len(text.strip()) > 100:
+                    return text
+                else:
+                    logger.info(f"PDF text extraction poor for {filepath.name}, using vision API")
             except ImportError:
-                logger.warning("pypdf not installed. Cannot read PDF files.")
+                logger.info(f"pypdf not installed, using vision API for {filepath.name}")
+            except Exception as e:
+                logger.warning(f"pypdf failed for {filepath.name}: {e}, using vision API")
+
+            # Use vision API for PDF
+            try:
+                import sys
+                sys.path.insert(0, str(filepath.parent.parent.parent))
+                from shared_scripts.file_readers import read_pdf
+                return read_pdf(filepath, self.client, use_vision=True)
+            except Exception as e:
+                logger.error(f"Vision API failed for PDF {filepath.name}: {e}")
                 return None
-        
+
         elif suffix in {'.docx', '.doc'}:
             try:
                 import docx
@@ -360,11 +377,18 @@ class ReportHandler(FileSystemEventHandler):
             except ImportError:
                 logger.warning("python-docx not installed. Cannot read Word files.")
                 return None
-        
+
         elif suffix in {'.jpg', '.jpeg', '.png', '.tiff', '.tif'}:
-            # For images, return placeholder - would need OCR or vision API
-            logger.info(f"Image file detected: {filepath.name} - requires vision processing")
-            return f"[Image file: {filepath.name} - content extraction not implemented]"
+            # Use Claude vision API for images
+            logger.info(f"Processing image file: {filepath.name} with Claude vision API")
+            try:
+                import sys
+                sys.path.insert(0, str(filepath.parent.parent.parent))
+                from shared_scripts.file_readers import read_image
+                return read_image(filepath, self.client)
+            except Exception as e:
+                logger.error(f"Vision API failed for image {filepath.name}: {e}")
+                return f"[Image file: {filepath.name} - vision processing failed: {e}]"
         
         return None
     

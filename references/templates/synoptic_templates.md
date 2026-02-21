@@ -2,18 +2,45 @@
 
 Generate blank CAP-style synoptic report templates with all required fields for each tumor type.
 
+## Contents
+
+- [Usage](#usage)
+- [Template Format Standards](#template-format-standards)
+- [Breast Invasive Carcinoma Template](#breast-invasive-carcinoma-template)
+  - Lumpectomy / Partial Mastectomy
+  - Total Mastectomy / Modified Radical Mastectomy
+- [Colorectal Resection Template](#colorectal-resection-template)
+  - Colon Resection
+  - Rectal Resection (Anterior/Low Anterior Resection)
+- [Exocrine Pancreas Carcinoma Template](#exocrine-pancreas-carcinoma-template)
+  - Whipple (Pancreaticoduodenectomy)
+  - Distal Pancreatectomy
+- [Gastric Carcinoma Template](#gastric-carcinoma-template)
+  - Total Gastrectomy
+  - Partial/Subtotal Gastrectomy
+
+---
+
 ## Usage
 
 When user requests a template:
 1. Identify tumor type and specimen type
-2. Load appropriate template from this file
+2. Use grep to find the appropriate template section (see Quick Search below)
 3. Return formatted template with all required fields
 4. Optionally pre-fill known values if provided
+
+**Quick Search:**
+```bash
+grep -A 100 "## Breast Invasive" references/templates/synoptic_templates.md
+grep -A 100 "## Colorectal" references/templates/synoptic_templates.md
+grep -A 100 "## Exocrine Pancreas" references/templates/synoptic_templates.md
+grep -A 100 "## Gastric" references/templates/synoptic_templates.md
+```
 
 **Example requests:**
 - "Generate a blank synoptic template for breast lumpectomy"
 - "Give me a CAP template for Whipple specimen"
-- "Create a gastric carcinoma report template"
+- "Create a gastric carcinoma report template for 2.5cm Grade 2 adenocarcinoma" (with pre-fill)
 
 ---
 
