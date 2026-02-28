@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../pathology-report-colon-QA"
+		},
+		{
+			"path": "../pathology-skills-collection"
 		}
 	]
 }
