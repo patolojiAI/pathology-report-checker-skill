@@ -1,10 +1,19 @@
-# Pathology Report Compliance Checker
+# Pathology Report Checker
 
-A Claude skill for analyzing surgical pathology cancer reports against international guidelines and best practices.
+**A Claude skill for surgical pathology quality assurance**
 
-## Overview
+Analyze cancer pathology reports for compliance with CAP/ICCR guidelines, validate TNM staging, generate synoptic templates, and more. Supports multiple tumor types and languages (English/Turkish).
 
-This skill helps pathologists and pathology departments ensure their cancer reports meet CAP (College of American Pathologists), ICCR (International Collaboration on Cancer Reporting), and AAPA (American Association of Pathology Assistants) standards.
+## 🎯 What This Skill Does
+
+- ✅ Checks report completeness against CAP and ICCR guidelines
+- 🔬 Validates TNM staging (AJCC 8th edition)
+- 📋 Generates synoptic templates (with optional pre-fill)
+- 📊 Creates tumor board summaries
+- 🔄 Converts free-text reports to synoptic format
+- 🏥 Suggests SNOMED CT and ICD-O-3 codes
+- ✏️ Generates amendments and addenda
+- 🌐 Supports English and Turkish
 
 ## Features
 
@@ -67,13 +76,12 @@ This skill helps pathologists and pathology departments ensure their cancer repo
 
 ### ⬜ Planned Features
 
-See [TODO.md](TODO.md) for full roadmap.
+See [.dev/TODO.md](.dev/TODO.md) for full roadmap.
 
 **Coming Soon:**
 - Pediatric tumors (Wilms, neuroblastoma, hepatoblastoma)
-- Tumor board summary generator
 - Lung carcinoma (NSCLC)
-- Auto-fill suggestions
+- Prostate carcinoma
 
 ## Supported Languages
 
@@ -254,158 +262,95 @@ Generate breast template for 1.8cm Grade 1 invasive lobular carcinoma
 3.2cm az diferansiye adenokarsinom için kolon şablonu oluştur
 ```
 
-## Usage
+## 🚀 Installation
 
-### Option 1: Claude CLI / Claude.ai / Claude App (No API Key)
+### Method 1: Manual Installation
 
-Uses your existing Claude authentication. No additional API key required.
-
-**Claude.ai / Claude App:**
-```
-Simply paste or upload a pathology report and use any of the trigger phrases above.
-```
-
-**Claude CLI:**
-```bash
-# Single report
-claude "Check this breast pathology report for CAP compliance" < report.txt
-
-# Folder of reports
-claude "Analyze all pathology reports in /path/to/reports/ for CAP/ICCR compliance"
-
-# Convert to synoptic format
-claude "Convert this report to CAP synoptic format" < narrative_report.txt
-
-# Generate tumor board summary
-claude "Generate a tumor board summary from this report" < report.pdf
-
-# Excel/CSV file
-claude "Check compliance for reports in /path/to/reports.xlsx"
-```
-
----
-
-### Option 2: Python Scripts (API Key Required)
-
-Makes direct API calls. Requires `ANTHROPIC_API_KEY` environment variable.
-
-**When to use Python scripts:**
-- Automated/scheduled batch processing
-- Continuous folder monitoring
-- Integration with LIS/pipelines
-- Cron jobs
-
-#### Batch Processing Script
+1. Clone or download this repository
+2. Copy the skill folder to `~/.claude/skills/`
+3. Restart Claude Code or reload skills
 
 ```bash
-# Install dependencies
-pip install anthropic openpyxl
+# Clone the repository
+git clone https://github.com/yourusername/pathology-report-checker-skill.git
 
-# Set API key (required!)
-export ANTHROPIC_API_KEY="your-api-key-here"
+# Copy to Claude skills directory
+cp -r pathology-report-checker-skill ~/.claude/skills/
 
-# Run batch analysis
-python scripts/batch_checker.py /input/folder /output/folder --tumor-type pancreas
+# Or create a symlink for easier development
+ln -s /path/to/pathology-report-checker-skill ~/.claude/skills/pathology-report-checker
 ```
 
-#### Watch Folder Script (Automatic Processing)
+### Method 2: Direct Download
+
+Download the skill package and extract to `~/.claude/skills/`
+
+## 📖 Usage
+
+### Basic Usage (Claude.ai / Claude Code)
+
+Simply paste or upload a pathology report and use a trigger phrase:
+
+```
+Check this breast pathology report for CAP compliance
+```
+
+```
+Generate a synoptic template for colorectal resection
+```
+
+```
+Calculate TNM stage for pT2 N1 M0 breast cancer
+```
+
+### Claude CLI
 
 ```bash
-# Install dependencies
-pip install anthropic watchdog openpyxl pypdf python-docx
+# Check single report
+claude "Check this report for CAP compliance" < report.txt
 
-# Set API key (required!)
-export ANTHROPIC_API_KEY="your-api-key-here"
+# Generate template
+claude "Generate breast lumpectomy synoptic template"
 
-# Watch folder for compliance checking
-python scripts/watch_folder.py /path/to/reports --output /path/to/results
-
-# Different processing modes
-python scripts/watch_folder.py /reports --mode synoptic      # Convert to synoptic
-python scripts/watch_folder.py /reports --mode summary       # Tumor board summaries
-python scripts/watch_folder.py /reports --mode autofill      # Suggest missing values
-
-# Process existing files on startup
-python scripts/watch_folder.py /reports --process-existing
-
-# One-time batch (no continuous watching)
-python scripts/watch_folder.py /reports --no-watch --process-existing
-
-# Custom polling interval (seconds)
-python scripts/watch_folder.py /reports --interval 30
+# Tumor board summary
+claude "Generate tumor board summary" < report.pdf
 ```
 
-**Supported file types:** `.txt`, `.md`, `.pdf`, `.docx`, `.jpg`, `.png`, `.tiff`
+### Advanced Usage (Batch Processing)
 
----
+For automated batch processing and folder monitoring, see [.dev/docs/USAGE.md](.dev/docs/USAGE.md)
 
-### Quick Reference
-
-| Scenario | Method | API Key? |
-|----------|--------|----------|
-| Check a few reports manually | Claude.ai / Claude App | ❌ No |
-| One-time folder analysis | Claude CLI | ❌ No |
-| Daily automated batch job | `batch_checker.py` | ✅ Yes |
-| Continuous folder monitoring | `watch_folder.py` | ✅ Yes |
-
-## File Structure
+## 📁 Skill Structure
 
 ```
-pathology-report-checker/
-├── SKILL.md                    # Main skill instructions (streamlined)
+pathology-report-checker-skill/
+├── SKILL.md                    # Main skill entry point
 ├── README.md                   # This file
-├── CHANGELOG.md                # Version history with detailed changes
-├── TODO.md                     # Feature roadmap
-├── docs/                       # Detailed documentation
-│   ├── QUICK_REFERENCE.md      # 1-page cheat sheet
-│   ├── WORKFLOW.md             # Detailed compliance workflow
-│   ├── FEATURES.md             # Feature documentation
-│   └── USAGE.md                # CLI and script usage
-├── samples/                    # Test reports (synthetic/anonymized)
-│   ├── README.md               # Sample descriptions and usage
-│   ├── breast_complete_en.txt  # Complete breast (EN)
-│   ├── breast_incomplete_en.txt # Incomplete breast (EN)
-│   ├── breast_complete_tr.txt  # Complete breast (TR)
-│   ├── colorectal_complete_en.txt
-│   ├── colorectal_errors_en.txt # Cross-validation errors
-│   ├── colorectal_incomplete_tr.txt
-│   ├── pancreas_complete_en.txt
+├── LICENSE                     # MIT License
+├── CHANGELOG.md                # Version history
+├── marketplace.json            # Marketplace metadata
+├── .skillignore                # Files excluded from skill package
+├── examples/                   # Example reports for testing
+│   ├── breast_complete_en.txt
+│   ├── colorectal_errors_en.txt
 │   ├── pancreas_staging_error_en.txt
-│   ├── gastric_complete_en.txt
-│   ├── gastric_incomplete_tr.txt
-│   └── expected_outputs/       # Expected QA results
-├── scripts/
-│   ├── batch_checker.py        # Python batch processor (API key required)
-│   └── watch_folder.py         # Watch folder processor (API key required)
-└── references/
-    ├── diagnosis/              # Microscopic diagnosis guidelines (CAP/ICCR)
-    │   ├── breast_invasive_carcinoma.md
-    │   ├── colorectal_resection.md
-    │   ├── exocrine_pancreas.md
-    │   └── gastric_carcinoma.md
-    ├── macroscopy/             # Gross description guidelines (AAPA-integrated)
-    │   ├── MACROSCOPY_COMMON.md
-    │   ├── breast_macroscopy.md
-    │   ├── colorectal_macroscopy.md
-    │   ├── pancreas_macroscopy.md
-    │   └── gastric_macroscopy.md
-    ├── staging/                # TNM staging calculator (AJCC 8th)
-    │   └── tnm_stage_calculator.md
-    ├── templates/              # Synoptic report templates (CAP)
-    │   ├── synoptic_templates.md
-    │   └── synoptic_templates_tr.md  # Turkish version
-    ├── coding/                 # SNOMED CT / ICD-O-3 codes
-    │   └── snomed_ct_codes.md
-    ├── summaries/              # Summary generators
-    │   └── tumor_board_summary.md
-    ├── converters/             # Format converters
-    │   └── freetext_to_synoptic.md
-    ├── autofill/               # Auto-fill suggestions
-    │   └── autofill_suggestions.md
-    ├── amendments/             # Amendment templates
-    │   └── amendment_generator.md
-    └── biomarkers/             # Biomarker reporting guidelines (ASCO/CAP)
-        └── BIOMARKERS_INDEX.md
+│   └── gastric_complete_en.txt
+├── references/                 # Clinical reference files
+│   ├── diagnosis/              # CAP/ICCR guidelines by tumor type
+│   ├── macroscopy/             # AAPA gross description guidelines
+│   ├── staging/                # TNM staging (AJCC 8th)
+│   ├── templates/              # Synoptic templates (EN/TR)
+│   ├── coding/                 # SNOMED CT / ICD-O-3
+│   ├── summaries/              # Tumor board summary generator
+│   ├── converters/             # Free-text to synoptic
+│   ├── autofill/               # Auto-fill suggestions
+│   ├── amendments/             # Amendment generator
+│   └── biomarkers/             # Biomarker guidelines
+└── .dev/                       # Development files (not in skill package)
+    ├── scripts/                # Python automation scripts
+    ├── docs/                   # Extended documentation
+    ├── TODO.md                 # Development roadmap
+    └── CLAUDE.md               # Claude Code development guide
 ```
 
 ## Guidelines Referenced
@@ -444,50 +389,51 @@ Score = 100 - (Critical × 15) - (Major × 5) - (Minor × 2)
 - Lymph node count: gross vs microscopic
 - Tumor extent: gross impression vs microscopic staging
 
-## Documentation
+## 📚 Documentation
 
 | File | Description |
 |------|-------------|
-| `SKILL.md` | Core skill instructions (streamlined) |
-| `CHANGELOG.md` | Version history with detailed changes |
-| `docs/QUICK_REFERENCE.md` | 1-page cheat sheet with all triggers and references |
-| `docs/WORKFLOW.md` | Detailed step-by-step compliance workflow |
-| `docs/FEATURES.md` | Documentation for all features |
-| `docs/USAGE.md` | CLI and script usage guide |
-| `samples/README.md` | Sample reports for testing |
-| `README.md` | This overview file |
-| `TODO.md` | Feature roadmap and completion status |
+| `SKILL.md` | Core skill instructions |
+| `README.md` | This overview (marketplace listing) |
+| `CHANGELOG.md` | Version history |
+| `marketplace.json` | Skill metadata |
+| `.dev/docs/QUICK_REFERENCE.md` | 1-page cheat sheet |
+| `.dev/docs/WORKFLOW.md` | Detailed compliance workflow |
+| `.dev/docs/FEATURES.md` | Feature documentation |
+| `.dev/docs/USAGE.md` | Advanced usage guide |
 
-## Contributing
+## 🤝 Contributing
 
-To add a new tumor type:
-1. Create reference file in `references/` following existing format
-2. Include: Core elements, Conditional elements, Recommended elements
-3. Add Turkish-English terminology table
+Contributions are welcome! To add support for a new tumor type:
+
+1. Create reference files in `references/diagnosis/` and `references/macroscopy/`
+2. Follow existing format: Core/Conditional/Recommended elements
+3. Include terminology tables (English ↔ Turkish)
 4. Add cross-validation rules
-5. Update TODO.md and README.md
+5. Update SKILL.md and README.md
+6. Submit a pull request
 
-## Version History
+See [.dev/CLAUDE.md](.dev/CLAUDE.md) for detailed development guide.
 
-> 📋 See `CHANGELOG.md` for detailed changes in each version.
+## 📜 License
 
-| Version | Date | Summary |
-|---------|------|---------|
-| 2.6 | 2024-12-29 | Sample reports (10 synthetic test cases) |
-| 2.5 | 2024-12-29 | Documentation split (modular docs/) |
-| 2.4 | 2024-12-29 | Watch folder automation |
-| 2.3 | 2024-12-29 | Amendment generator |
-| 2.2 | 2024-12-29 | Auto-fill suggestions |
-| 2.1 | 2024-12-29 | Free-text to synoptic converter |
-| 2.0 | 2024-12-28 | Tumor board summary generator |
-| 1.5 | 2024-12-28 | Gastric carcinoma |
-| 1.1 | 2024-12-28 | Pancreas, severity scoring |
-| 1.0 | 2024-12-27 | Initial: breast, colorectal |
+MIT License - see [LICENSE](LICENSE) for details
 
-## License
+## 🔗 Links
 
-For use with Claude by Anthropic.
+- **Repository**: [GitHub](https://github.com/yourusername/pathology-report-checker-skill)
+- **Issues**: [Report bugs](https://github.com/yourusername/pathology-report-checker-skill/issues)
+- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
 
-## Author
+## ⚕️ Clinical Guidelines
 
-Developed collaboratively with Claude for surgical pathology quality assurance.
+This skill references the following standards:
+- CAP Cancer Protocol Templates (2024)
+- ICCR Cancer Datasets (2nd edition)
+- AJCC TNM Staging Manual (8th edition)
+- AAPA Macroscopic Examination Guidelines (3rd edition)
+- WHO Classification of Tumours (5th edition)
+
+## 🙏 Acknowledgments
+
+Developed for surgical pathology quality assurance. This tool is designed to assist pathologists but does not replace clinical judgment.

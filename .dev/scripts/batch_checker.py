@@ -7,7 +7,8 @@ or local LLMs (Ollama, LM Studio).
 
 Usage:
     python batch_checker.py <input_dir> <output_dir> [options]
-
+    python batch_checker.py <input_dir> <output_dir> [--tumor-type TYPE] [--model MODEL]
+    
 Arguments:
     input_dir           Directory containing report text files (.txt)
     output_dir          Directory to save results

@@ -1,0 +1,83 @@
+{
+  "name": "pathology-report-checker",
+  "displayName": "Pathology Report Checker",
+  "version": "1.0.0",
+  "description": "Analyzes surgical pathology cancer reports for compliance with CAP and ICCR guidelines. Checks completeness, validates staging, generates synoptic templates, and supports multi-language reports (English/Turkish).",
+  "author": "Pathology Report Checker Contributors",
+  "license": "MIT",
+  "categories": [
+    "medical",
+    "healthcare",
+    "quality-assurance",
+    "clinical"
+  ],
+  "keywords": [
+    "pathology",
+    "CAP",
+    "ICCR",
+    "cancer",
+    "staging",
+    "TNM",
+    "synoptic",
+    "breast",
+    "colorectal",
+    "pancreas",
+    "gastric"
+  ],
+  "supportedLanguages": [
+    "en",
+    "tr"
+  ],
+  "tumorTypes": [
+    "Breast invasive carcinoma",
+    "Colorectal resection",
+    "Exocrine pancreas carcinoma",
+    "Gastric carcinoma"
+  ],
+  "features": [
+    "CAP/ICCR compliance checking",
+    "TNM staging validation (AJCC 8th edition)",
+    "Synoptic template generation",
+    "Tumor board summary creation",
+    "Free-text to synoptic conversion",
+    "SNOMED CT / ICD-O-3 coding",
+    "Amendment generation",
+    "Multi-language support (EN/TR)"
+  ],
+  "installation": {
+    "method": "manual",
+    "steps": [
+      "Clone or download the skill repository",
+      "Copy the skill folder to ~/.claude/skills/",
+      "Restart Claude Code or reload skills",
+      "Use trigger phrases like 'Check this report for CAP compliance'"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/pathology-report-checker-skill"
+  },
+  "homepage": "https://github.com/yourusername/pathology-report-checker-skill#readme",
+  "bugs": {
+    "url": "https://github.com/yourusername/pathology-report-checker-skill/issues"
+  },
+  "minimumClaudeVersion": "3.5",
+  "requiredTools": [],
+  "optionalTools": [
+    "bash",
+    "python"
+  ],
+  "references": {
+    "guidelines": [
+      "CAP Cancer Protocols",
+      "ICCR Datasets",
+      "AAPA Gross Description Guidelines",
+      "AJCC 8th Edition Staging Manual"
+    ],
+    "standards": [
+      "SNOMED CT",
+      "ICD-O-3"
+    ]
+  },
+  "changelog": "See CHANGELOG.md for version history"
+}

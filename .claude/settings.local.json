@@ -1,10 +1,23 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(skill-creator edit:*)",
       "Bash(find:*)",
       "Bash(ls:*)",
       "Bash(unzip:*)",
+      "Bash(python3:*)",
+      "WebSearch",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(python:*)",
+      "Bash(chmod:*)",
+      "Bash(test:*)",
+      "Bash(./install_as_plugin.sh:*)",
+      "Bash(file:*)",
+      "Bash(open:*)"
       "Bash(python3:*)",
       "Bash(curl:*)"
     ]
