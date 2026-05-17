@@ -2,21 +2,40 @@
 """
 Pathology Report Batch Compliance Checker
 
-Uses Claude API to analyze pathology reports against CAP/ICCR guidelines.
-Provides the same quality analysis as interactive mode by using the same
-reference files.
+Analyzes pathology reports against CAP/ICCR guidelines using Claude API
+or local LLMs (Ollama, LM Studio).
 
 Usage:
+    python batch_checker.py <input_dir> <output_dir> [options]
     python batch_checker.py <input_dir> <output_dir> [--tumor-type TYPE] [--model MODEL]
     
 Arguments:
-    input_dir     Directory containing report text files (.txt)
-    output_dir    Directory to save results
-    --tumor-type  Optional: breast, colorectal, pancreas (auto-detect if not specified)
-    --model       Optional: Claude model to use (default: claude-sonnet-4-20250514)
+    input_dir           Directory containing report text files (.txt)
+    output_dir          Directory to save results
+
+Options:
+    --provider, -p      LLM provider: anthropic (default), ollama, lmstudio
+    --model, -m         Model name (auto-detected for local providers)
+    --tumor-type, -t    Tumor type: breast, colorectal, pancreas, gastric
+    --list-models       List available models for the selected provider
+    --ollama-url        Ollama API URL (default: http://localhost:11434/v1)
+    --lmstudio-url      LM Studio API URL (default: http://localhost:1234/v1)
 
 Environment:
-    ANTHROPIC_API_KEY  Required API key for Claude
+    ANTHROPIC_API_KEY   Required for Claude provider
+    LLM_PROVIDER        Default provider
+    OLLAMA_MODEL        Default Ollama model
+    LMSTUDIO_MODEL      Default LM Studio model
+
+Examples:
+    # With Claude (default)
+    python batch_checker.py /reports /output
+
+    # With local Ollama
+    python batch_checker.py /reports /output -p ollama -m qwen2.5:3b
+
+    # With LM Studio
+    python batch_checker.py /reports /output -p lmstudio
 
 Output files:
     - individual_reports/  Folder with per-report QA results
@@ -37,21 +56,39 @@ from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from typing import List, Dict, Optional, Tuple, Any
 
-# Try to import required packages
+# Try to import optional packages
+ANTHROPIC_AVAILABLE = False
+OPENAI_AVAILABLE = False
+EXCEL_AVAILABLE = False
+
 try:
     import anthropic
+    ANTHROPIC_AVAILABLE = True
 except ImportError:
-    print("Error: anthropic package not installed.")
-    print("Install with: pip install anthropic")
-    sys.exit(1)
+    pass
+
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    pass
 
 try:
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill, Alignment
     EXCEL_AVAILABLE = True
 except ImportError:
-    EXCEL_AVAILABLE = False
     print("Note: openpyxl not installed. Excel export will be skipped.")
+
+
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
+
+DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
+DEFAULT_OLLAMA_MODEL = "llama3.1:70b"
+DEFAULT_OLLAMA_URL = "http://localhost:11434/v1"
+DEFAULT_LMSTUDIO_URL = "http://localhost:1234/v1"
 
 
 # ============================================================================
@@ -120,6 +157,80 @@ class ReportResult:
 
 
 # ============================================================================
+# MODEL DISCOVERY
+# ============================================================================
+
+def list_available_models(base_url: str, provider: str, quiet: bool = False) -> List[str]:
+    """Query the /v1/models endpoint to list available models."""
+    if not OPENAI_AVAILABLE:
+        if not quiet:
+            print("Warning: openai package not installed.", file=sys.stderr)
+        return []
+
+    try:
+        client = OpenAI(base_url=base_url, api_key="not-needed")
+        models_response = client.models.list()
+        model_ids = [m.id for m in models_response.data]
+        return model_ids
+    except Exception as e:
+        if not quiet:
+            print(f"Warning: Could not list models from {base_url}: {e}", file=sys.stderr)
+        return []
+
+
+def auto_select_model(base_url: str, provider: str, quiet: bool = False) -> Optional[str]:
+    """Auto-detect and select a model from the local server."""
+    models = list_available_models(base_url, provider, quiet)
+
+    if not models:
+        return None
+
+    if len(models) == 1:
+        if not quiet:
+            print(f"Auto-detected model: {models[0]}")
+        return models[0]
+
+    # Multiple models available
+    if not quiet:
+        print(f"\nMultiple models available in {provider}:")
+        for i, model_id in enumerate(models, 1):
+            print(f"  {i}. {model_id}")
+        print(f"\nUsing first available model: {models[0]}")
+        print(f"Tip: Use --model to select a specific model.\n")
+
+    return models[0]
+
+
+# ============================================================================
+# LLM CLIENT CREATION
+# ============================================================================
+
+def create_anthropic_client():
+    """Create Anthropic client."""
+    if not ANTHROPIC_AVAILABLE:
+        print("Error: anthropic package not installed.", file=sys.stderr)
+        print("Install with: pip install anthropic", file=sys.stderr)
+        sys.exit(1)
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("Error: ANTHROPIC_API_KEY environment variable not set.", file=sys.stderr)
+        sys.exit(1)
+
+    return anthropic.Anthropic(api_key=api_key)
+
+
+def create_openai_compatible_client(base_url: str):
+    """Create OpenAI-compatible client for Ollama or LM Studio."""
+    if not OPENAI_AVAILABLE:
+        print("Error: openai package not installed.", file=sys.stderr)
+        print("Install with: pip install openai", file=sys.stderr)
+        sys.exit(1)
+
+    return OpenAI(base_url=base_url, api_key="not-needed")
+
+
+# ============================================================================
 # REFERENCE FILE LOADING
 # ============================================================================
 
@@ -147,7 +258,7 @@ def load_reference_file(tumor_type: str) -> str:
     ref_path = skill_dir / "references" / filename
     
     if ref_path.exists():
-        return ref_path.read_text()
+        return ref_path.read_text(encoding="utf-8")
     return ""
 
 
@@ -155,15 +266,9 @@ def load_staging_reference() -> str:
     """Load the TNM stage calculator reference file."""
     skill_dir = get_skill_dir()
     staging_path = skill_dir / "references" / "staging" / "tnm_stage_calculator.md"
-    
+
     if staging_path.exists():
-        return staging_path.read_text()
-    return ""
-    
-    if ref_path.exists():
-        with open(ref_path, "r", encoding="utf-8") as f:
-            return f.read()
-    
+        return staging_path.read_text(encoding="utf-8")
     return ""
 
 
@@ -269,14 +374,15 @@ Return ONLY the JSON object, no other text."""
 
 
 def analyze_report_with_llm(
-    client: anthropic.Anthropic,
+    client,
     report_text: str,
     tumor_type: Optional[str],
     skill_content: str,
-    model: str = "claude-sonnet-4-20250514"
+    model: str,
+    provider: str = "anthropic"
 ) -> Dict[str, Any]:
-    """Analyze a single report using Claude."""
-    
+    """Analyze a single report using the specified LLM provider."""
+
     # Load appropriate reference file
     if tumor_type:
         reference_content = load_reference_file(tumor_type)
@@ -288,29 +394,35 @@ def analyze_report_with_llm(
             load_reference_file("colorectal"),
             load_reference_file("gastric"),
         ])
-    
+
     # Load staging reference
     staging_content = load_staging_reference()
-    
+
     prompt = ANALYSIS_PROMPT.format(
         skill_content=skill_content,
         reference_content=reference_content,
         staging_content=staging_content,
         report_text=report_text
     )
-    
+
     try:
-        response = client.messages.create(
-            model=model,
-            max_tokens=4096,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        # Extract text response
-        response_text = response.content[0].text
-        
+        # Call appropriate API
+        if provider == "anthropic":
+            response = client.messages.create(
+                model=model,
+                max_tokens=4096,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            response_text = response.content[0].text
+        else:
+            # OpenAI-compatible API (Ollama, LM Studio)
+            response = client.chat.completions.create(
+                model=model,
+                max_tokens=4096,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            response_text = response.choices[0].message.content
+
         # Parse JSON from response
         # Handle potential markdown code blocks
         json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
@@ -318,11 +430,11 @@ def analyze_report_with_llm(
             json_str = json_match.group(1)
         else:
             json_str = response_text
-        
+
         result = json.loads(json_str)
         result["_raw_response"] = response_text
         return result
-        
+
     except json.JSONDecodeError as e:
         print(f"  Warning: Failed to parse JSON response: {e}")
         return {
@@ -336,7 +448,7 @@ def analyze_report_with_llm(
             "quality_metrics": None,
             "_raw_response": response_text if 'response_text' in locals() else ""
         }
-    except anthropic.APIError as e:
+    except Exception as e:
         print(f"  Warning: API error: {e}")
         return {
             "error": f"API error: {e}",
@@ -409,7 +521,9 @@ def parse_llm_result(llm_result: Dict[str, Any], filename: str) -> ReportResult:
     present_elements = []
     for p in llm_result.get("present_elements", []):
         if isinstance(p, dict):
-            present_elements.append(f"{p.get('element', '')}: {p.get('value', '')[:50]}...")
+            element = p.get('element', '') or ''
+            value = p.get('value', '') or ''
+            present_elements.append(f"{element}: {str(value)[:50]}...")
         else:
             present_elements.append(str(p))
     
@@ -419,10 +533,17 @@ def parse_llm_result(llm_result: Dict[str, Any], filename: str) -> ReportResult:
     minor_count = sum(1 for g in gaps if g.severity == "minor")
     missing_count = sum(1 for g in gaps if g.status == "missing")
     empty_count = sum(1 for g in gaps if g.status == "empty")
-    
+
+    # Handle tumor_type being a list or string
+    tumor_type_raw = llm_result.get("tumor_type", "unknown")
+    if isinstance(tumor_type_raw, list):
+        tumor_type = tumor_type_raw[0] if tumor_type_raw else "unknown"
+    else:
+        tumor_type = str(tumor_type_raw) if tumor_type_raw else "unknown"
+
     return ReportResult(
         filename=filename,
-        tumor_type=llm_result.get("tumor_type", "unknown"),
+        tumor_type=tumor_type,
         score=llm_result.get("compliance_score", 0),
         status=llm_result.get("status", "UNKNOWN"),
         critical_count=critical_count,
@@ -445,127 +566,94 @@ def parse_llm_result(llm_result: Dict[str, Any], filename: str) -> ReportResult:
 # ============================================================================
 
 def process_directory(
-    input_dir: str, 
-    output_dir: str, 
+    input_dir: str,
+    output_dir: str,
     tumor_type: Optional[str] = None,
-    model: str = "claude-sonnet-4-20250514",
+    model: Optional[str] = None,
+    provider: str = "anthropic",
+    ollama_url: str = DEFAULT_OLLAMA_URL,
+    lmstudio_url: str = DEFAULT_LMSTUDIO_URL,
     rate_limit_delay: float = 1.0
 ) -> List[ReportResult]:
-    """Process all report files in a directory using Claude."""
-    
-    # Check API key
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        print("Error: ANTHROPIC_API_KEY environment variable not set")
+    """Process all report files in a directory using the specified LLM provider."""
+
+    # Create appropriate client and determine model
+    if provider == "anthropic":
+        client = create_anthropic_client()
+        model = model or DEFAULT_ANTHROPIC_MODEL
+
+    elif provider == "ollama":
+        client = create_openai_compatible_client(ollama_url)
+        if not model:
+            model = auto_select_model(ollama_url, provider) or DEFAULT_OLLAMA_MODEL
+
+    elif provider == "lmstudio":
+        client = create_openai_compatible_client(lmstudio_url)
+        if not model:
+            model = auto_select_model(lmstudio_url, provider)
+            if not model:
+                print("Error: No models loaded in LM Studio.")
+                print("Open LM Studio → Local Server tab → Load a model → Start Server")
+                sys.exit(1)
+
+    else:
+        print(f"Error: Unknown provider '{provider}'")
         sys.exit(1)
-    
-    client = anthropic.Anthropic(api_key=api_key)
-    
+
     input_path = Path(input_dir)
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Create subdirectory for individual reports
     individual_dir = output_path / "individual_reports"
     individual_dir.mkdir(exist_ok=True)
-    
+
     # Load skill content once
     skill_content = load_skill_file()
-    
+
     results = []
-    
-    # Find all supported files (text, Excel, CSV, PDF, images)
-    report_files = []
-    for ext in ["*.txt", "*.TXT", "*.xlsx", "*.xls", "*.csv", "*.pdf", "*.jpg", "*.jpeg", "*.png", "*.tiff", "*.tif"]:
-        report_files.extend(input_path.glob(ext))
+
+    # Find all text files
+    report_files = list(input_path.glob("*.txt")) + list(input_path.glob("*.TXT"))
 
     print(f"Found {len(report_files)} report files to process...")
+    print(f"Using provider: {provider}")
     print(f"Using model: {model}")
     print()
-
-    # Import shared file readers
-    try:
-        sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-        from shared_scripts.file_readers import read_file_content
-    except ImportError as e:
-        print(f"Warning: Could not import shared_scripts. Multi-format support unavailable.")
-        print(f"Error: {e}")
-        print("Falling back to text-only mode...")
-        # Fallback to text only
-        report_files = [f for f in report_files if f.suffix.lower() in {'.txt'}]
 
     for i, report_file in enumerate(report_files, 1):
         print(f"Processing [{i}/{len(report_files)}]: {report_file.name}")
 
         try:
-            # Try multi-format reader first
-            if 'read_file_content' in dir():
-                content = read_file_content(report_file, client, use_vision=True)
-
-                # Handle batch Excel/CSV
-                if isinstance(content, list):
-                    print(f"  Detected batch mode: {len(content)} reports in {report_file.name}")
-
-                    for idx, row in enumerate(content, 1):
-                        report_text = row.get('report_text', '')
-                        patient_id = row.get('patient_id', f'Row_{idx}')
-
-                        print(f"    Processing row {idx}/{len(content)}: {patient_id}")
-
-                        # Analyze with LLM
-                        llm_result = analyze_report_with_llm(
-                            client=client,
-                            report_text=report_text,
-                            tumor_type=tumor_type or row.get('tumor_type'),
-                            skill_content=skill_content,
-                            model=model
-                        )
-
-                        # Parse result
-                        result = parse_llm_result(llm_result, f"{report_file.stem}_row{idx}_{patient_id}")
-                        results.append(result)
-
-                        # Save individual report
-                        individual_report = generate_individual_report(result)
-                        with open(individual_dir / f"{report_file.stem}_row{idx}_{patient_id}_qa.txt", "w", encoding="utf-8") as f:
-                            f.write(individual_report)
-
-                    continue  # Skip to next file
-                else:
-                    report_text = content
-            else:
-                # Fallback to text reading
-                with open(report_file, "r", encoding="utf-8") as f:
-                    report_text = f.read()
+            with open(report_file, "r", encoding="utf-8") as f:
+                report_text = f.read()
         except UnicodeDecodeError:
             with open(report_file, "r", encoding="latin-1") as f:
                 report_text = f.read()
-        except Exception as e:
-            print(f"  Error reading {report_file.name}: {e}")
-            continue
-        
+
         # Analyze with LLM
         llm_result = analyze_report_with_llm(
             client=client,
             report_text=report_text,
             tumor_type=tumor_type,
             skill_content=skill_content,
-            model=model
+            model=model,
+            provider=provider
         )
-        
+
         # Parse result
         result = parse_llm_result(llm_result, report_file.name)
         results.append(result)
-        
+
         # Save individual report
         individual_report = generate_individual_report(result)
         with open(individual_dir / f"{report_file.stem}_qa.txt", "w", encoding="utf-8") as f:
             f.write(individual_report)
-        
-        # Rate limiting
-        if i < len(report_files):
+
+        # Rate limiting (only for cloud providers)
+        if provider == "anthropic" and i < len(report_files):
             time.sleep(rate_limit_delay)
-    
+
     return results
 
 
@@ -774,7 +862,7 @@ def generate_summary_report(results: List[ReportResult]) -> str:
     major = sum(1 for r in valid_results if r.status == "INCOMPLETE - MAJOR")
     critical = sum(1 for r in valid_results if r.status == "INCOMPLETE - CRITICAL")
     
-    avg_score = sum(r.score for r in valid_results) / valid_count
+    avg_score = sum(r.score or 0 for r in valid_results) / valid_count
     
     # Quality metrics averages
     qm_results = [r for r in valid_results if r.quality_metrics]
@@ -951,7 +1039,7 @@ def export_to_excel(results: List[ReportResult], output_path: Path):
     ws_summary = wb.active
     ws_summary.title = "Summary"
     
-    avg_score = sum(r.score for r in valid_results) / total
+    avg_score = sum(r.score or 0 for r in valid_results) / total
     
     qm_results = [r for r in valid_results if r.quality_metrics]
     if qm_results:
@@ -1156,58 +1244,153 @@ def save_trend_data(results: List[ReportResult], output_path: Path):
 
 def main():
     """Main entry point."""
-    
-    if len(sys.argv) < 3:
-        print(__doc__)
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Batch process pathology reports for CAP/ICCR compliance",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Process with Claude (default)
+  python batch_checker.py /path/to/reports /path/to/output
+
+  # Process with local Ollama
+  python batch_checker.py /reports /output --provider ollama -m qwen2.5:3b
+
+  # Process with LM Studio
+  python batch_checker.py /reports /output --provider lmstudio
+
+  # List available models
+  python batch_checker.py --list-models --provider ollama
+
+  # Specify tumor type
+  python batch_checker.py /reports /output --tumor-type breast
+"""
+    )
+
+    parser.add_argument(
+        "input_dir",
+        nargs="?",
+        help="Directory containing report text files (.txt)"
+    )
+
+    parser.add_argument(
+        "output_dir",
+        nargs="?",
+        help="Directory to save results"
+    )
+
+    parser.add_argument(
+        "--provider", "-p",
+        type=str,
+        default=os.environ.get("LLM_PROVIDER", "anthropic"),
+        choices=["anthropic", "ollama", "lmstudio"],
+        help="LLM provider (default: anthropic)"
+    )
+
+    parser.add_argument(
+        "--model", "-m",
+        type=str,
+        default=os.environ.get("OLLAMA_MODEL") or os.environ.get("LMSTUDIO_MODEL"),
+        help="Model name (auto-detected for local providers if not specified)"
+    )
+
+    parser.add_argument(
+        "--list-models",
+        action="store_true",
+        help="List available models for the selected provider and exit"
+    )
+
+    parser.add_argument(
+        "--ollama-url",
+        type=str,
+        default=os.environ.get("OLLAMA_URL", DEFAULT_OLLAMA_URL),
+        help=f"Ollama API base URL (default: {DEFAULT_OLLAMA_URL})"
+    )
+
+    parser.add_argument(
+        "--lmstudio-url",
+        type=str,
+        default=os.environ.get("LMSTUDIO_URL", DEFAULT_LMSTUDIO_URL),
+        help=f"LM Studio API base URL (default: {DEFAULT_LMSTUDIO_URL})"
+    )
+
+    parser.add_argument(
+        "--tumor-type", "-t",
+        type=str,
+        choices=["breast", "colorectal", "pancreas", "gastric"],
+        help="Tumor type hint (auto-detected if not specified)"
+    )
+
+    args = parser.parse_args()
+
+    # Handle --list-models
+    if args.list_models:
+        if args.provider == "anthropic":
+            print("Model listing not supported for Anthropic. Available models:")
+            print(f"  {DEFAULT_ANTHROPIC_MODEL}")
+            sys.exit(0)
+
+        base_url = args.lmstudio_url if args.provider == "lmstudio" else args.ollama_url
+        models = list_available_models(base_url, args.provider)
+
+        if not models:
+            print(f"No models found. Is {args.provider} running?", file=sys.stderr)
+            if args.provider == "ollama":
+                print("Start with: ollama serve", file=sys.stderr)
+            else:
+                print("Open LM Studio → Local Server → Load a model → Start Server", file=sys.stderr)
+            sys.exit(1)
+
+        print(f"Available models ({args.provider}):")
+        for model_id in models:
+            print(f"  {model_id}")
+        sys.exit(0)
+
+    # Validate required arguments
+    if not args.input_dir or not args.output_dir:
+        parser.print_help()
         sys.exit(1)
-    
-    input_dir = sys.argv[1]
-    output_dir = sys.argv[2]
-    
-    tumor_type = None
-    model = "claude-sonnet-4-20250514"
-    
-    if "--tumor-type" in sys.argv:
-        idx = sys.argv.index("--tumor-type")
-        if idx + 1 < len(sys.argv):
-            tumor_type = sys.argv[idx + 1].lower()
-    
-    if "--model" in sys.argv:
-        idx = sys.argv.index("--model")
-        if idx + 1 < len(sys.argv):
-            model = sys.argv[idx + 1]
-    
-    print(f"Input directory: {input_dir}")
-    print(f"Output directory: {output_dir}")
-    print(f"Tumor type: {tumor_type or 'auto-detect'}")
-    print(f"Model: {model}")
+
+    print(f"Input directory: {args.input_dir}")
+    print(f"Output directory: {args.output_dir}")
+    print(f"Provider: {args.provider}")
+    print(f"Tumor type: {args.tumor_type or 'auto-detect'}")
     print()
-    
+
     # Process reports
-    results = process_directory(input_dir, output_dir, tumor_type, model)
-    
+    results = process_directory(
+        input_dir=args.input_dir,
+        output_dir=args.output_dir,
+        tumor_type=args.tumor_type,
+        model=args.model,
+        provider=args.provider,
+        ollama_url=args.ollama_url,
+        lmstudio_url=args.lmstudio_url
+    )
+
     if not results:
         print("No reports found to process.")
         sys.exit(1)
-    
-    output_path = Path(output_dir)
-    
+
+    output_path = Path(args.output_dir)
+
     # Generate summary report
     summary = generate_summary_report(results)
     summary_file = output_path / "summary_report.txt"
     with open(summary_file, "w", encoding="utf-8") as f:
         f.write(summary)
     print(f"\nSummary report: {summary_file}")
-    
+
     # Print summary
     print("\n" + summary)
-    
+
     # Export
     export_to_csv(results, output_path)
     export_to_excel(results, output_path)
     save_trend_data(results, output_path)
-    
-    print(f"\n✅ Processing complete. Results saved to: {output_dir}")
+
+    print(f"\nProcessing complete. Results saved to: {args.output_dir}")
 
 
 if __name__ == "__main__":
