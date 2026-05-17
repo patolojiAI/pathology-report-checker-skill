@@ -5,7 +5,8 @@
       "Bash(find:*)",
       "Bash(ls:*)",
       "Bash(unzip:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(curl:*)"
     ]
   }
 }
