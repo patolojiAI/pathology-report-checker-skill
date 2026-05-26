@@ -1,26 +1,46 @@
-# Development files (not included in skill package)
+# Files excluded from the packaged skill (kept in the GitHub repo for humans).
+# See: Anthropic skill guide - "No README.md inside your skill folder".
+
+# Development / project meta
 CLAUDE.md
 TODO.md
+CHANGELOG.md
 .DS_Store
 .git/
 .github/
 .vscode/
 .claude/
+.dev/
 
-# Python automation scripts (development tools)
+# Repo-level docs (kept on GitHub, not in the uploaded skill)
+README.md
+INSTALLATION.md
+MARKETPLACE.md
+MARKETPLACE_READY.md
+IMPROVEMENTS_APPLIED.md
+SKILL_IMPROVEMENT_PLAN.md
+LICENSE
+marketplace.json
+
+# Python automation scripts (development tools, run from .dev/)
 scripts/
 *.pyc
 __pycache__/
 .pytest_cache/
 venv/
 .env
+requirements.txt
 
 # IDE and workspace files
 *.code-workspace
 .idea/
 
-# Documentation (extended docs - keep README.md)
+# Symlinks for local development
+shared_scripts
+
+# Extended docs and local study material
 docs/
+local_studies/
 
 # Git files
 .gitignore

@@ -6,6 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.0-rc] - 2026-05-26
+
+### Changed
+- **SKILL.md rewritten against Anthropic's official "Complete Guide to Building Skills for Claude"**:
+  - Description sharpened to include WHAT, WHEN, and explicit trigger phrases (1001/1024 chars)
+  - Added negative triggers ("Do NOT use for non-cancer pathology, cytology...") to prevent over-triggering
+  - Added `license: MIT` and `metadata` block (author, version, guidelines) to YAML frontmatter
+  - Moved CRITICAL performance notes to the top so they are not buried
+  - Tightened workflows, severity table, and example outputs
+  - Added explicit "When Not To Use" section
+- **`.skillignore`** expanded to keep README, marketplace docs, dev planning files, `local_studies/`, and the `shared_scripts` symlink out of the packaged skill
+- **`marketplace.json`**: corrected repository URL to `sbalci/pathology-report-checker-skill`, bumped version to 1.1.0, updated author
+
+### Why
+Prepares the skill for marketplace release. Aligns with Anthropic's published best practices for description writing, progressive disclosure, and packaging hygiene.
+
+---
+
 ## [2.6] - 2024-12-29
 
 ### Added
