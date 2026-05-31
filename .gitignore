@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Build artifacts
+dist/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.env
+
+# Editor
+.idea/
+*.swp
+*.swo
+*.code-workspace
+
+# Claude Code local settings
+.claude/

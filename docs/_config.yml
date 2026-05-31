@@ -1,0 +1,9 @@
+# GitHub Pages configuration for the Pathology Report Checker project site.
+# Served from /docs on the default branch (Settings -> Pages -> Source: /docs).
+title: Pathology Report Checker
+description: >-
+  A Claude skill for surgical pathology quality assurance — CAP/ICCR compliance,
+  TNM staging, synoptic reporting. Selected for oral presentation at ECDP2026.
+theme: jekyll-theme-cayman
+show_downloads: false
+url: https://reportskill.patoloji.dev
