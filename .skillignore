@@ -42,6 +42,9 @@ shared_scripts
 docs/
 local_studies/
 
+# Release build output (created by .dev/scripts/build_skill.py)
+dist/
+
 # Git files
 .gitignore
 .gitattributes
