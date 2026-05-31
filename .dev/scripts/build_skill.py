@@ -30,8 +30,8 @@ The script is idempotent: it overwrites any existing archive.
 Release (run after the branch is merged and the repo is public)::
 
     python3 .dev/scripts/build_skill.py
-    gh release create v1.2.0 dist/pathology-report-checker.skill \
-        --title "v1.2.0" --notes-file CHANGELOG.md
+    gh release create v1.3.0 dist/pathology-report-checker.skill \
+        --title "v1.3.0" --notes "..."
 
 The README download link points at ``releases/latest/download/<name>.skill``,
 so it resolves to the newest release automatically and never needs updating.
