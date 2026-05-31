@@ -17,8 +17,7 @@
       "Bash(test:*)",
       "Bash(./install_as_plugin.sh:*)",
       "Bash(file:*)",
-      "Bash(open:*)"
-      "Bash(python3:*)",
+      "Bash(open:*)",
       "Bash(curl:*)"
     ]
   }
