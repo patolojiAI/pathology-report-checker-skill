@@ -11,7 +11,9 @@ ICD-O-3 codes — in **English and Turkish**.
 
 [⬇️ Download the `.skill`](https://github.com/patolojiAI/pathology-report-checker-skill/releases/latest/download/pathology-report-checker.skill){: .btn }
 &nbsp;
-[🤗 Try it on Hugging Face](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill){: .btn }
+[▶️ Live demo](https://reportskill.patoloji.app/){: .btn }
+&nbsp;
+[🤗 Hugging Face](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill){: .btn }
 &nbsp;
 [💻 Source on GitHub](https://github.com/patolojiAI/pathology-report-checker-skill){: .btn }
 
@@ -55,11 +57,10 @@ pancreas carcinoma · gastric carcinoma.
 
 ## 🤗 Try it online
 
-A hosted demo runs on Hugging Face Spaces — no install required:
+A hosted demo — no install required — at **[reportskill.patoloji.app](https://reportskill.patoloji.app/)**,
+running on [Hugging Face Spaces](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill):
 
-[**huggingface.co/spaces/patolojiai/pathology-report-checker-skill**](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)
-
-[![Pathology Report QA on Hugging Face Spaces](assets/huggingface-space.png)](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)
+[![Pathology Report QA on Hugging Face Spaces](assets/huggingface-space.png)](https://reportskill.patoloji.app/)
 
 ---
 
@@ -158,10 +159,10 @@ assurance.*
 
 ## 🔗 Links
 
-- **Hugging Face Space:** <https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill>
+- **Live demo:** [reportskill.patoloji.app](https://reportskill.patoloji.app/) — on [Hugging Face Spaces](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)
 - **GitHub repository:** <https://github.com/patolojiAI/pathology-report-checker-skill>
 - **Latest `.skill` release:** <https://github.com/patolojiAI/pathology-report-checker-skill/releases/latest>
-- **Related skill collection:** <https://github.com/patolojiAI/pathology-skills-collection>
+- **Related skill collection:** [pathologyskills.patoloji.dev](https://pathologyskills.patoloji.dev/) · <https://github.com/patolojiAI/pathology-skills-collection>
 
 ---
 

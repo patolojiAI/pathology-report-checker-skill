@@ -4,7 +4,7 @@
 
 Analyze cancer pathology reports for compliance with CAP/ICCR guidelines, validate TNM staging, generate synoptic templates, and more. Supports multiple tumor types and languages (English/Turkish).
 
-**[⬇️ Download `.skill`](https://github.com/patolojiAI/pathology-report-checker-skill/releases/latest/download/pathology-report-checker.skill)** &nbsp;·&nbsp; **[🤗 Try it on Hugging Face](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)** &nbsp;·&nbsp; **[🌐 Project website](https://reportskill.patoloji.dev/)**
+**[⬇️ Download `.skill`](https://github.com/patolojiAI/pathology-report-checker-skill/releases/latest/download/pathology-report-checker.skill)** &nbsp;·&nbsp; **[▶️ Live demo](https://reportskill.patoloji.app/)** &nbsp;·&nbsp; **[🤗 Hugging Face](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)** &nbsp;·&nbsp; **[🌐 Project website](https://reportskill.patoloji.dev/)**
 
 > ### 🎓 Academic project — ECDP2026 oral presentation
 >
@@ -308,10 +308,10 @@ cp -r pathology-report-checker-skill ~/.claude/skills/pathology-report-checker
 
 Then restart Claude Code or reload skills.
 
-### Method 3: Hugging Face — hosted demo (nothing to install)
+### Method 3: Live demo — hosted, nothing to install
 
-Try it in the browser at
-**[huggingface.co/spaces/patolojiai/pathology-report-checker-skill](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)**.
+Try it in the browser at **[reportskill.patoloji.app](https://reportskill.patoloji.app/)**
+— a hosted demo on [Hugging Face Spaces](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill).
 
 ### Building the `.skill` yourself
 
@@ -466,11 +466,11 @@ If you use this skill in academic work, please cite the ECDP2026 presentation:
 ## 🔗 Links
 
 - **Project website**: [reportskill.patoloji.dev](https://reportskill.patoloji.dev/)
-- **Hugging Face Space**: [patolojiai/pathology-report-checker-skill](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)
+- **Live demo**: [reportskill.patoloji.app](https://reportskill.patoloji.app/) — hosted on [Hugging Face Spaces](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)
 - **Repository**: [GitHub](https://github.com/patolojiAI/pathology-report-checker-skill)
 - **Latest `.skill` release**: [Releases](https://github.com/patolojiAI/pathology-report-checker-skill/releases/latest)
 - **Issues**: [Report bugs](https://github.com/patolojiAI/pathology-report-checker-skill/issues)
-- **Related skill collection**: [pathology-skills-collection](https://github.com/patolojiAI/pathology-skills-collection)
+- **Related skill collection**: [pathologyskills.patoloji.dev](https://pathologyskills.patoloji.dev/) · [GitHub](https://github.com/patolojiAI/pathology-skills-collection)
 
 ## ⚕️ Clinical Guidelines
 
