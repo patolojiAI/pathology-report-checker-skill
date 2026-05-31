@@ -6,6 +6,48 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.2.0] - 2026-05-31
+
+### Added
+- **`.skill` packaging**: `.dev/scripts/build_skill.py` builds a self-contained
+  `dist/pathology-report-checker.skill` (SKILL.md + `references/` + `examples/`),
+  uploadable via **Claude.ai → Settings → Capabilities → Skills → Upload skill**.
+  The build honours `.skillignore`, so dev tooling, docs, and the website never
+  ship inside the skill.
+- **GitHub Pages project website** under `docs/` (`index.md` + `_config.yml`):
+  usage guide, the ECDP2026 abstract (embedded PDF), the acceptance
+  notification, the Hugging Face demo, and a citation.
+- **Academic context**: README and website document the **ECDP2026 oral
+  presentation** — *“A Skill for Large Language Models to Evaluate Pathology
+  Report Quality”* (22nd European Congress on Digital Pathology, Graz, 19 June
+  2026, Structured Reporting session) — plus a "How to cite" entry.
+- README links the hosted **Hugging Face Space**
+  (`patolojiai/pathology-report-checker-skill`) and a one-click **Download
+  `.skill`** button.
+
+### Changed
+- README installation rewritten — Method 1: `.skill` upload (no terminal);
+  Method 2: clone & symlink; Method 3: Hugging Face demo.
+- Fixed placeholder `yourusername` repository URLs → `sbalci`.
+
+### Removed
+- Stopped tracking the personal `*.code-workspace` IDE file (kept on disk,
+  now gitignored).
+
+### Why
+Prepares the skill for a public release: a one-click uploadable artifact, a
+browsable project site, and clear academic provenance for the ECDP2026 work.
+
+> **Post-merge release steps** (after the repo is transferred to the **patolojiAI**
+> org and made public):
+> 1. `python3 .dev/scripts/build_skill.py`
+> 2. `gh release create v1.2.0 dist/pathology-report-checker.skill --title "v1.2.0" --notes-file CHANGELOG.md`
+> 3. Enable Pages: **Settings → Pages → Source: `/docs`**.
+> 4. Add `docs/CNAME` containing `reportskill.patolojiai.com` for the custom domain.
+> 5. Swap `sbalci` → `patolojiAI` in URLs (GitHub keeps redirects, so old links keep working).
+
+---
+
 ## [1.1.0-rc] - 2026-05-26
 
 ### Changed

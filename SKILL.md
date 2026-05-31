@@ -4,7 +4,7 @@ description: Analyzes surgical pathology cancer reports for compliance with CAP 
 license: MIT
 metadata:
   author: Serdar Balci, MD, Pathologist
-  version: 1.1.0
+  version: 1.2.0
   guidelines: CAP 2024, ICCR 2nd edition, AJCC 8th edition, AAPA 3rd edition, WHO 5th edition
 ---
 

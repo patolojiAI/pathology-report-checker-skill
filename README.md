@@ -4,6 +4,24 @@
 
 Analyze cancer pathology reports for compliance with CAP/ICCR guidelines, validate TNM staging, generate synoptic templates, and more. Supports multiple tumor types and languages (English/Turkish).
 
+**[⬇️ Download `.skill`](https://github.com/sbalci/pathology-report-checker-skill/releases/latest/download/pathology-report-checker.skill)** &nbsp;·&nbsp; **[🤗 Try it on Hugging Face](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)** &nbsp;·&nbsp; **[🌐 Project website](https://sbalci.github.io/pathology-report-checker-skill/)**
+
+> ### 🎓 Academic project — ECDP2026 oral presentation
+>
+> This skill is the subject of a study **selected for an oral presentation at
+> [ECDP2026](https://www.ecdp2026.org/)**, the 22nd European Congress on Digital
+> Pathology (Graz, Austria, 17–20 June 2026):
+>
+> **“A Skill for Large Language Models to Evaluate Pathology Report Quality”**
+> Balcı P, Ünlü M, Nazlım S, Türkmen İ, Balcı S — *Structured Reporting session,
+> 19 June 2026.*
+>
+> 100 anonymized Turkish colorectal reports were evaluated with this skill across
+> cloud (Claude) and local (Mistral 7B / Ollama) models, with review by two
+> pathologists. See the [abstract](docs/assets/ecdp2026-abstract.pdf), the
+> [acceptance notification](docs/assets/ecdp2026-acceptance.jpeg), and the
+> [project website](https://sbalci.github.io/pathology-report-checker-skill/).
+
 ## 🎯 What This Skill Does
 
 - ✅ Checks report completeness against CAP and ICCR guidelines
@@ -264,26 +282,42 @@ Generate breast template for 1.8cm Grade 1 invasive lobular carcinoma
 
 ## 🚀 Installation
 
-### Method 1: Manual Installation
+### Method 1: Claude.ai app / desktop — upload the `.skill` file (no terminal)
 
-1. Clone or download this repository
-2. Copy the skill folder to `~/.claude/skills/`
-3. Restart Claude Code or reload skills
+Each release ships a self-contained `.skill` archive (a zip of `SKILL.md` +
+`references/` + `examples/`).
+
+1. **[Download `pathology-report-checker.skill`](https://github.com/sbalci/pathology-report-checker-skill/releases/latest/download/pathology-report-checker.skill)**
+   (right-click → *Save Link As…*). The link always resolves to the latest release.
+2. In Claude.ai, open **Settings → Capabilities → Skills → Upload skill** and
+   select the downloaded file.
+3. Paste or upload a report and use a trigger phrase (see below).
+
+### Method 2: Claude Code — clone & symlink
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/pathology-report-checker-skill.git
+git clone https://github.com/sbalci/pathology-report-checker-skill.git
 
-# Copy to Claude skills directory
-cp -r pathology-report-checker-skill ~/.claude/skills/
+# Symlink into your Claude skills directory
+ln -s "$(pwd)/pathology-report-checker-skill" ~/.claude/skills/pathology-report-checker
 
-# Or create a symlink for easier development
-ln -s /path/to/pathology-report-checker-skill ~/.claude/skills/pathology-report-checker
+# (or copy instead of symlinking)
+cp -r pathology-report-checker-skill ~/.claude/skills/pathology-report-checker
 ```
 
-### Method 2: Direct Download
+Then restart Claude Code or reload skills.
 
-Download the skill package and extract to `~/.claude/skills/`
+### Method 3: Hugging Face — hosted demo (nothing to install)
+
+Try it in the browser at
+**[huggingface.co/spaces/patolojiai/pathology-report-checker-skill](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)**.
+
+### Building the `.skill` yourself
+
+```bash
+python3 .dev/scripts/build_skill.py   # → dist/pathology-report-checker.skill
+```
 
 ## 📖 Usage
 
@@ -346,8 +380,12 @@ pathology-report-checker-skill/
 │   ├── autofill/               # Auto-fill suggestions
 │   ├── amendments/             # Amendment generator
 │   └── biomarkers/             # Biomarker guidelines
+├── docs/                       # GitHub Pages project website (not in skill package)
+│   ├── index.md                # Landing page (academic context, usage, abstract)
+│   ├── _config.yml             # Jekyll config
+│   └── assets/                 # ECDP2026 acceptance + abstract, HF screenshot
 └── .dev/                       # Development files (not in skill package)
-    ├── scripts/                # Python automation scripts
+    ├── scripts/                # Python automation (incl. build_skill.py)
     ├── docs/                   # Extended documentation
     ├── TODO.md                 # Development roadmap
     └── CLAUDE.md               # Claude Code development guide
@@ -419,11 +457,23 @@ See [.dev/CLAUDE.md](.dev/CLAUDE.md) for detailed development guide.
 
 MIT License - see [LICENSE](LICENSE) for details
 
+## 📚 How to Cite
+
+If you use this skill in academic work, please cite the ECDP2026 presentation:
+
+> Balcı P, Ünlü M, Nazlım S, Türkmen İ, Balcı S. *A Skill for Large Language
+> Models to Evaluate Pathology Report Quality.* 22nd European Congress on Digital
+> Pathology (ECDP2026), Graz, Austria, 2026. Oral presentation.
+
 ## 🔗 Links
 
-- **Repository**: [GitHub](https://github.com/yourusername/pathology-report-checker-skill)
-- **Issues**: [Report bugs](https://github.com/yourusername/pathology-report-checker-skill/issues)
+- **Project website**: [sbalci.github.io/pathology-report-checker-skill](https://sbalci.github.io/pathology-report-checker-skill/)
+- **Hugging Face Space**: [patolojiai/pathology-report-checker-skill](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill)
+- **Repository**: [GitHub](https://github.com/sbalci/pathology-report-checker-skill)
+- **Latest `.skill` release**: [Releases](https://github.com/sbalci/pathology-report-checker-skill/releases/latest)
+- **Issues**: [Report bugs](https://github.com/sbalci/pathology-report-checker-skill/issues)
 - **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+- **Related skill collection**: [pathology-skills-collection](https://github.com/sbalci/pathology-skills-collection)
 
 ## ⚕️ Clinical Guidelines
 
