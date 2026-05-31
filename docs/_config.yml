@@ -8,4 +8,5 @@ theme: jekyll-theme-cayman
 show_downloads: false
 
 # After the repo is transferred to the patolojiAI org and a custom domain is
-# configured, add a docs/CNAME file containing: reportskill.patolojiai.com
+# configured, add a docs/CNAME file containing: reportskill.patoloji.dev
+# (patoloji.dev is managed in Cloudflare).

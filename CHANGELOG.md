@@ -43,7 +43,7 @@ browsable project site, and clear academic provenance for the ECDP2026 work.
 > 1. `python3 .dev/scripts/build_skill.py`
 > 2. `gh release create v1.2.0 dist/pathology-report-checker.skill --title "v1.2.0" --notes-file CHANGELOG.md`
 > 3. Enable Pages: **Settings → Pages → Source: `/docs`**.
-> 4. Add `docs/CNAME` containing `reportskill.patolojiai.com` for the custom domain.
+> 4. Add `docs/CNAME` containing `reportskill.patoloji.dev` for the custom domain (patoloji.dev is managed in Cloudflare).
 > 5. Swap `sbalci` → `patolojiAI` in URLs (GitHub keeps redirects, so old links keep working).
 
 ---
