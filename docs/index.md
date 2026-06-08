@@ -66,6 +66,15 @@ running on [Hugging Face Spaces](https://huggingface.co/spaces/patolojiai/pathol
 
 ## 🚀 Use it in Claude
 
+📺 **New to Claude?** This short video walks through installing the Claude
+desktop app and adding a skill:
+
+<div style="max-width:760px; margin:1rem 0;">
+  <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:6px;">
+    <iframe src="https://www.youtube.com/embed/pXIkpDMyTG4" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" title="Install the Claude desktop app and add a skill" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+  </div>
+</div>
+
 **Option A — Claude.ai / desktop app (no terminal):**
 
 1. [Download `pathology-report-checker.skill`](https://github.com/patolojiAI/pathology-report-checker-skill/releases/latest/download/pathology-report-checker.skill)
