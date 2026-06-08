@@ -1,0 +1,22 @@
+{
+  "name": "pathology-report-checker-skill",
+  "owner": {
+    "name": "Serdar Balci",
+    "email": "serdarbalci@serdarbalci.com"
+  },
+  "metadata": {
+    "description": "Pathology Report Checker — analyzes surgical pathology cancer reports for CAP/ICCR compliance, validates pTNM staging (AJCC 8th), generates synoptic templates, tumor-board summaries, SNOMED CT / ICD-O-3 coding, and free-text→synoptic conversion. English & Turkish.",
+    "version": "1.4.0"
+  },
+  "plugins": [
+    {
+      "name": "pathology-report-checker",
+      "description": "All-in-one surgical pathology QA skill: CAP/ICCR compliance scoring, TNM staging validation, synoptic templates, tumor-board summaries, SNOMED/ICD-O-3 coding, amendments. Breast, colorectal, exocrine pancreas, gastric. EN/TR.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/pathology-report-checker"
+      ]
+    }
+  ]
+}

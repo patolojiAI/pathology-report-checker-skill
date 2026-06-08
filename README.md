@@ -289,26 +289,46 @@ Each release ships a self-contained `.skill` archive (a zip of `SKILL.md` +
 
 1. **[Download `pathology-report-checker.skill`](https://github.com/patolojiAI/pathology-report-checker-skill/releases/latest/download/pathology-report-checker.skill)**
    (right-click → *Save Link As…*). The link always resolves to the latest release.
+   A copy is also kept in the repo at
+   [`dist/pathology-report-checker.skill`](https://github.com/patolojiAI/pathology-report-checker-skill/raw/master/dist/pathology-report-checker.skill).
 2. In Claude.ai, open **Settings → Capabilities → Skills → Upload skill** and
    select the downloaded file.
 3. Paste or upload a report and use a trigger phrase (see below).
 
-### Method 2: Claude Code — clone & symlink
+### Method 2: Claude Code / Desktop — add the marketplace (one command)
+
+This repo is a Claude Code plugin marketplace, so you can install it directly:
+
+```text
+/plugin marketplace add patolojiAI/pathology-report-checker-skill
+/plugin install pathology-report-checker@pathology-report-checker-skill
+```
+
+In the **Claude desktop app**, open **Add marketplace → Add from a repository**
+and enter `patolojiAI/pathology-report-checker-skill`.
+
+> Prefer the whole pathology toolkit? The
+> [pathology-skills-collection](https://github.com/patolojiAI/pathology-skills-collection)
+> marketplace bundles this checker alongside 14 other skills.
+
+### Method 3: Claude Code — clone & symlink
 
 ```bash
 # Clone the repository
 git clone https://github.com/patolojiAI/pathology-report-checker-skill.git
 
-# Symlink into your Claude skills directory
-ln -s "$(pwd)/pathology-report-checker-skill" ~/.claude/skills/pathology-report-checker
+# Symlink the skill folder into your Claude skills directory
+ln -s "$(pwd)/pathology-report-checker-skill/skills/pathology-report-checker" \
+  ~/.claude/skills/pathology-report-checker
 
 # (or copy instead of symlinking)
-cp -r pathology-report-checker-skill ~/.claude/skills/pathology-report-checker
+cp -r pathology-report-checker-skill/skills/pathology-report-checker \
+  ~/.claude/skills/pathology-report-checker
 ```
 
 Then restart Claude Code or reload skills.
 
-### Method 3: Live demo — hosted, nothing to install
+### Method 4: Live demo — hosted, nothing to install
 
 Try it in the browser at **[reportskill.patoloji.app](https://reportskill.patoloji.app/)**
 — a hosted demo on [Hugging Face Spaces](https://huggingface.co/spaces/patolojiai/pathology-report-checker-skill).
