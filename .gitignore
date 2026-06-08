@@ -1,8 +1,10 @@
 # macOS
 .DS_Store
 
-# Build artifacts
-dist/
+# Build artifacts (ignore everything in dist/ ...)
+dist/*
+# ... but keep the distributable .skill bundle tracked in-repo as a download fallback
+!dist/*.skill
 
 # Python
 __pycache__/

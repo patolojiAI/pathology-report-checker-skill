@@ -120,8 +120,8 @@ def auto_select_model(base_url: str, provider: str, quiet: bool = False) -> Opti
 # ============================================================================
 
 def get_skill_dir() -> Path:
-    """Get the skill directory (parent of scripts/)."""
-    return Path(__file__).parent.parent
+    """Return the skill content directory (skills/pathology-report-checker/)."""
+    return Path(__file__).resolve().parents[2] / "skills" / "pathology-report-checker"
 
 
 def load_skill_file() -> str:

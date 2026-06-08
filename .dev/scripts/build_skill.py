@@ -46,6 +46,9 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 SKILL_NAME = "pathology-report-checker"
+# The skill content lives in its own folder (canonical plugin layout); the .skill
+# bundle is built from there so the zip's top-level dir stays ``pathology-report-checker/``.
+SKILL_SRC = REPO / "skills" / SKILL_NAME
 DIST_DIR = REPO / "dist"
 SKILLIGNORE = REPO / ".skillignore"
 
@@ -85,12 +88,12 @@ def is_ignored(rel: Path, patterns: list[str]) -> bool:
 
 
 def collect_payload(patterns: list[str]) -> list[Path]:
-    """All repo files that should ship inside the .skill, sorted."""
+    """All skill files that should ship inside the .skill, sorted."""
     payload: list[Path] = []
-    for path in sorted(REPO.rglob("*")):
+    for path in sorted(SKILL_SRC.rglob("*")):
         if not path.is_file():
             continue
-        rel = path.relative_to(REPO)
+        rel = path.relative_to(SKILL_SRC)
         if is_ignored(rel, patterns):
             continue
         payload.append(path)
@@ -101,7 +104,7 @@ def build() -> int:
     patterns = load_ignore_patterns()
     payload = collect_payload(patterns)
 
-    if not any(p.name == "SKILL.md" and p.parent == REPO for p in payload):
+    if not any(p.name == "SKILL.md" and p.parent == SKILL_SRC for p in payload):
         print("error: SKILL.md not found in payload — refusing to build", file=sys.stderr)
         return 1
 
@@ -112,7 +115,7 @@ def build() -> int:
 
     with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for path in payload:
-            arcname = (Path(SKILL_NAME) / path.relative_to(REPO)).as_posix()
+            arcname = (Path(SKILL_NAME) / path.relative_to(SKILL_SRC)).as_posix()
             zf.write(path, arcname)
 
     size_kb = out_path.stat().st_size / 1024

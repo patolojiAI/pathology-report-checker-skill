@@ -1,0 +1,26 @@
+{
+  "name": "pathology-report-checker",
+  "version": "1.4.0",
+  "description": "Analyzes surgical pathology cancer reports for compliance with CAP and ICCR guidelines. Validates pTNM staging (AJCC 8th edition), checks required-element completeness with severity-based scoring, generates synoptic templates, tumor-board summaries, SNOMED CT / ICD-O-3 codes, free-text→synoptic conversion, and amendments. Breast, colorectal, exocrine pancreas, gastric. English & Turkish.",
+  "author": {
+    "name": "Serdar Balci, MD, Pathologist",
+    "email": "serdarbalci@serdarbalci.com"
+  },
+  "homepage": "https://reportskill.patoloji.dev",
+  "repository": "https://github.com/patolojiAI/pathology-report-checker-skill",
+  "license": "MIT",
+  "keywords": [
+    "pathology",
+    "CAP",
+    "ICCR",
+    "cancer",
+    "staging",
+    "TNM",
+    "synoptic",
+    "SNOMED",
+    "breast",
+    "colorectal",
+    "pancreas",
+    "gastric"
+  ]
+}
